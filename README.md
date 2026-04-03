@@ -94,11 +94,30 @@ Best checkpoints: `PYTHONPATH=. python scripts/select_best_models.py` → `resul
 
 > **Note:** Observation size changed from any earlier traffic prototype—**retrain** models after pulling this mission version.
 
-## Evaluate best agent + GUI
+## Evaluate best agent + GUI (“game” demo window)
+
+The Pygame window is the **live demo**: progress bars, last action, skill curve, status badge, and optional **on-screen objective + reward legend** (for your screen recording).
 
 ```bash
-PYTHONPATH=. python main.py --algo dqn --render --verbose --episodes 1
+# Best for the assignment video: GUI + verbose terminal + checklist overlay
+PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_0.zip --render --demo --verbose --episodes 1
 ```
+
+If you use `results/best_models.json`, omit `--model-path` and pass `--algo` to match.
+
+### Video recording checklist (typical course rubric)
+
+| Requirement | What to do |
+|-------------|------------|
+| Full screen + camera | Share entire desktop; face camera on; place terminal next to the Pygame window (or split-screen). |
+| State the problem | Briefly describe youth STEM employability + CodetyAI (Rwanda / Africa context). |
+| Agent behaviour | Explain that the policy chooses **lesson / project / mentor / revision** each step from the student state. |
+| Reward structure | Use **--demo** so rewards are visible on screen, or read the legend in `custom_env.py`. |
+| Objective | **Maximize cumulative reward** → skill, confidence, projects → **job-ready** (success). |
+| Run best agent | **--render --verbose**; show **both** the Pygame GUI and terminal **step logs**. |
+| Explain performance | Comment on return, job-ready vs dropout, skill curve at end of episode. |
+
+The GUI updates **every step** while `--render` is on (not only at the end).
 
 ## Algorithms
 
@@ -114,7 +133,7 @@ Hyperparameter grids: `training/hyperparam_runs.py`.
 ## Report & video
 
 - **PDF:** follow your course template; outline in `report/REPORT_STRUCTURE.md`.
-- **Video:** narrate mission, agent behaviour, reward structure, objective; run `main.py --render --verbose` with **GUI + terminal**.
+- **Video:** see **Video recording checklist** above; use `--render --demo --verbose` for the clearest demo.
 
 ## Licence
 

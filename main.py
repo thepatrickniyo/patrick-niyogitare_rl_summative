@@ -3,8 +3,8 @@
 Run the best-performing trained agent with optional Pygame GUI and verbose logging.
 
 Usage:
-  PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_2.zip
-  PYTHONPATH=. python main.py --config results/best_models.json --episodes 3
+  PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_2.zip --render --demo --verbose
+  PYTHONPATH=. python main.py --config results/best_models.json --episodes 1 --render --demo --verbose
 """
 
 from __future__ import annotations
@@ -44,6 +44,8 @@ def run_episode(
     verbose: bool,
 ) -> dict:
     obs, info = env.reset()
+    if env.render_mode is not None:
+        env.render()
     total_reward = 0.0
     steps = 0
     done = trunc = False
@@ -52,12 +54,15 @@ def run_episode(
         obs, reward, done, trunc, info = env.step(action)
         total_reward += float(reward)
         steps += 1
+        if env.render_mode is not None:
+            env.render()
         if verbose:
             print(
                 f"  step={steps:4d}  action={int(action)}  "
-                f"reward={reward:8.2f}  skill={info['skill']:.1f}  "
-                f"conf={info['confidence']:.1f}  eng={info['engagement']}  "
-                f"projects={info['projects']}  mentors={info['mentorship_sessions']}"
+                f"reward={reward:8.2f}  cum={info.get('episode_return', total_reward):8.2f}  "
+                f"skill={info['skill']:.1f}  conf={info['confidence']:.1f}  "
+                f"eng={info['engagement']}  projects={info['projects']}  "
+                f"mentors={info['mentorship_sessions']}"
             )
     return {
         "return": total_reward,
@@ -76,6 +81,11 @@ def main() -> None:
     parser.add_argument("--config", type=str, default="results/best_models.json")
     parser.add_argument("--episodes", type=int, default=2)
     parser.add_argument("--render", action="store_true", help="Pygame human window")
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="On-screen objective + reward legend (best for assignment video recording)",
+    )
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--seed", type=int, default=123)
     parser.add_argument(
@@ -109,7 +119,7 @@ def main() -> None:
                 algo = entry.get("algo", algo)
 
     render_mode = "human" if args.render else None
-    env = CodetyAILearningEnv(render_mode=render_mode)
+    env = CodetyAILearningEnv(render_mode=render_mode, demo_overlay=args.demo)
 
     if algo == "random":
 

@@ -50,9 +50,15 @@ class CodetyAILearningEnv(gym.Env):
     R_ENGAGEMENT_DROP = -10.0
     R_DROPOUT = -20.0
 
-    def __init__(self, render_mode: Optional[str] = None, seed: Optional[int] = None):
+    def __init__(
+        self,
+        render_mode: Optional[str] = None,
+        seed: Optional[int] = None,
+        demo_overlay: bool = False,
+    ):
         super().__init__()
         self.render_mode = render_mode
+        self.demo_overlay = demo_overlay
         self._renderer: Optional[Any] = None
 
         self.action_space = spaces.Discrete(len(CodetyAction))
@@ -70,6 +76,8 @@ class CodetyAILearningEnv(gym.Env):
         self._low_engagement_streak = 0
         self._last_action = 0
         self._skill_history: list[float] = [25.0]
+        self._episode_return = 0.0
+        self._terminal_status = "active"
 
     def reset(
         self,
@@ -90,6 +98,8 @@ class CodetyAILearningEnv(gym.Env):
         self._low_engagement_streak = 0
         self._last_action = -1
         self._skill_history = [self._skill]
+        self._episode_return = 0.0
+        self._terminal_status = "active"
 
         return self._get_obs(), {}
 
@@ -198,6 +208,20 @@ class CodetyAILearningEnv(gym.Env):
                 terminated = True
                 dropout = True
 
+        reward_f = float(reward)
+        self._episode_return += reward_f
+        if terminated:
+            if dropout:
+                self._terminal_status = "dropout"
+            elif self._is_job_ready():
+                self._terminal_status = "success"
+            else:
+                self._terminal_status = "timeout"
+        elif truncated:
+            self._terminal_status = "timeout"
+        else:
+            self._terminal_status = "active"
+
         self._skill_history.append(self._skill)
         if len(self._skill_history) > 80:
             self._skill_history = self._skill_history[-80:]
@@ -212,8 +236,10 @@ class CodetyAILearningEnv(gym.Env):
             "job_ready": self._is_job_ready(),
             "dropout": dropout,
             "step": self._step_count,
+            "episode_return": self._episode_return,
+            "terminal_status": self._terminal_status,
         }
-        return self._get_obs(), float(reward), terminated, truncated, info
+        return self._get_obs(), reward_f, terminated, truncated, info
 
     def render(self) -> Optional[np.ndarray]:
         if self.render_mode is None:
@@ -222,7 +248,10 @@ class CodetyAILearningEnv(gym.Env):
             from environment.rendering import CodetyRenderer
 
             self._renderer = CodetyRenderer(
-                width=720, height=520, fps=self.metadata["render_fps"]
+                width=920,
+                height=640,
+                fps=self.metadata["render_fps"],
+                demo_overlay=self.demo_overlay,
             )
         return self._renderer.render(
             skill=self._skill,
@@ -233,6 +262,8 @@ class CodetyAILearningEnv(gym.Env):
             last_action=self._last_action,
             step=self._step_count,
             skill_history=np.array(self._skill_history, dtype=np.float32),
+            episode_return=self._episode_return,
+            terminal_status=self._terminal_status,
             mode=self.render_mode,
         )
 

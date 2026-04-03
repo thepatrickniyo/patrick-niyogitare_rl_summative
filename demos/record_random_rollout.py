@@ -27,12 +27,17 @@ def main() -> None:
     parser.add_argument("--steps", type=int, default=220)
     parser.add_argument("--out", type=str, default="static/random_agent_rollout.gif")
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Include on-screen objective + reward legend (same as main.py --demo)",
+    )
     args = parser.parse_args()
 
     out_path = ROOT / args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    env = CodetyAILearningEnv(render_mode="rgb_array")
+    env = CodetyAILearningEnv(render_mode="rgb_array", demo_overlay=args.demo)
     env.reset(seed=args.seed)
     frames: list[np.ndarray] = []
     frame = env.render()
