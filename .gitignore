@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.DS_Store
+results/tb/
+results/eval/
+results/training_log.csv
+results/best_models.json
+*.zip
+models/dqn/*.zip
+models/pg/**/*.zip
+models/pg/**/*.pt

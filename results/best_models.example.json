@@ -1,0 +1,30 @@
+{
+  "best": {
+    "dqn": {
+      "algo": "dqn",
+      "path": "models/dqn/run_0.zip",
+      "eval_mean_return": 0.0,
+      "run_index": 0
+    },
+    "ppo": {
+      "algo": "ppo",
+      "path": "models/pg/ppo/run_0.zip",
+      "eval_mean_return": 0.0,
+      "run_index": 0
+    },
+    "a2c": {
+      "algo": "a2c",
+      "path": "models/pg/a2c/run_0.zip",
+      "eval_mean_return": 0.0,
+      "run_index": 0
+    },
+    "reinforce": {
+      "algo": "reinforce",
+      "path": "models/pg/reinforce/run_0.pt",
+      "eval_mean_return": 0.0,
+      "run_index": 0,
+      "hidden": 128
+    }
+  },
+  "note": "Copy to best_models.json after training; or run: python scripts/select_best_models.py"
+}
