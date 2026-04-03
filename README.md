@@ -4,7 +4,7 @@
 
 **Course summative:** custom Gymnasium environment (**AI training platform simulation**) with **Pygame** UI, four algorithms (**DQN, REINFORCE, PPO, A2C**) via Stable-Baselines3 + PyTorch REINFORCE, **10 hyperparameter runs per algorithm**, and shared evaluation scripts.
 
-**GitHub:** publish as `student_name_rl_summative` (replace `student_name`).
+**GitHub:** [https://github.com/thepatrickniyo/patrick-niyogitare_rl_summative](https://github.com/thepatrickniyo/patrick-niyogitare_rl_summative)
 
 ## Project layout
 
