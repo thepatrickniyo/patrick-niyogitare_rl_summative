@@ -10,3 +10,4 @@ tensorboard>=2.14,<3
 tqdm>=4.66,<5
 rich>=13.0,<14
 cloudpickle>=3.0,<4
+matplotlib>=3.8,<4

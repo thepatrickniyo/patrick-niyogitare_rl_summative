@@ -166,10 +166,6 @@ The GUI updates **every step** while `--render` is on (not only at the end).
 
 Hyperparameter grids: `training/hyperparam_runs.py`.
 
-## Report & video
-
-- **PDF:** follow your course template; outline in `report/REPORT_STRUCTURE.md`.
-- **Video:** see **Video recording checklist** above; use `--render --demo --verbose` for the clearest demo.
 
 ## Licence
 

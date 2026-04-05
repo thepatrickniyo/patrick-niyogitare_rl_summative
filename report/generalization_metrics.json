@@ -1,0 +1,42 @@
+{
+  "DQN": {
+    "near_seeds_range": "0\u201349",
+    "far_seeds_range": "10000\u201310049",
+    "near_mean_return": 238.7,
+    "near_std_return": 50.48574056107328,
+    "far_mean_return": 250.4,
+    "far_std_return": 29.03170680480223,
+    "generalization_gap": 11.700000000000017,
+    "pct_change_far_vs_near": 4.901550062635049
+  },
+  "PPO": {
+    "near_seeds_range": "0\u201349",
+    "far_seeds_range": "10000\u201310049",
+    "near_mean_return": 209.5,
+    "near_std_return": 44.252118593350986,
+    "far_mean_return": 220.8,
+    "far_std_return": 25.10697114348921,
+    "generalization_gap": 11.300000000000011,
+    "pct_change_far_vs_near": 5.393794749145886
+  },
+  "A2C": {
+    "near_seeds_range": "0\u201349",
+    "far_seeds_range": "10000\u201310049",
+    "near_mean_return": 229.5,
+    "near_std_return": 47.47894270094902,
+    "far_mean_return": 240.8,
+    "far_std_return": 33.0508698826521,
+    "generalization_gap": 11.300000000000011,
+    "pct_change_far_vs_near": 4.923747276473915
+  },
+  "REINFORCE": {
+    "near_seeds_range": "0\u201349",
+    "far_seeds_range": "10000\u201310049",
+    "near_mean_return": 227.3,
+    "near_std_return": 46.99159499314744,
+    "far_mean_return": 230.4,
+    "far_std_return": 58.777886998428244,
+    "generalization_gap": 3.0999999999999943,
+    "pct_change_far_vs_near": 1.363836339579239
+  }
+}

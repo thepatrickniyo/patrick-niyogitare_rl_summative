@@ -1,0 +1,46 @@
+{
+  "DQN": {
+    "n_episodes": 2495,
+    "smooth_window": 12,
+    "max_trailing_mean_return": 259.5833333333333,
+    "episodes_to_90pct_of_max_ma": 801,
+    "tail_mean_return": 223.11623246492985,
+    "tail_std_return": 48.114327325881966,
+    "tail_coefficient_of_variation": 0.2156,
+    "mean_return_all_episodes": 205.84969939879758,
+    "training_budget": "55000 env steps (SB3)"
+  },
+  "PPO": {
+    "n_episodes": 891,
+    "smooth_window": 12,
+    "max_trailing_mean_return": 263.3333333333333,
+    "episodes_to_90pct_of_max_ma": 124,
+    "tail_mean_return": 238.37988826815644,
+    "tail_std_return": 39.51381680404046,
+    "tail_coefficient_of_variation": 0.1658,
+    "mean_return_all_episodes": 228.9057239057239,
+    "training_budget": "55000 env steps (SB3)"
+  },
+  "A2C": {
+    "n_episodes": 1622,
+    "smooth_window": 12,
+    "max_trailing_mean_return": 257.5,
+    "episodes_to_90pct_of_max_ma": 259,
+    "tail_mean_return": 210.93846153846152,
+    "tail_std_return": 34.66493547490447,
+    "tail_coefficient_of_variation": 0.1643,
+    "mean_return_all_episodes": 210.37299630086312,
+    "training_budget": "55000 env steps (SB3)"
+  },
+  "REINFORCE": {
+    "n_episodes": 320,
+    "smooth_window": 12,
+    "max_trailing_mean_return": 224.16666666666666,
+    "episodes_to_90pct_of_max_ma": 100,
+    "tail_mean_return": 194.765625,
+    "tail_std_return": 44.35677167422551,
+    "tail_coefficient_of_variation": 0.2277,
+    "mean_return_all_episodes": 182.25,
+    "training_budget": "320 training episodes"
+  }
+}

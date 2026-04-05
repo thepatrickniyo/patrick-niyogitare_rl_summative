@@ -24,6 +24,10 @@ class PolicyNet(nn.Module):
             nn.Tanh(),
             nn.Linear(hidden, n_act),
         )
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=0.5)
+                nn.init.zeros_(m.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
@@ -57,8 +61,8 @@ class ReinforceTrainer:
         done = trunc = False
         steps = 0
         while not (done or trunc):
-            x = torch.as_tensor(obs, dtype=torch.float32).unsqueeze(0)
-            logits = self.policy(x)
+            x = torch.as_tensor(np.nan_to_num(obs, nan=0.0, posinf=1.0, neginf=0.0), dtype=torch.float32).unsqueeze(0)
+            logits = torch.clamp(self.policy(x), -40.0, 40.0)
             dist = Categorical(logits=logits)
             action = dist.sample()
             log_probs.append(dist.log_prob(action))
@@ -66,16 +70,27 @@ class ReinforceTrainer:
             obs, r, done, trunc, _ = self.env.step(int(action.item()))
             rewards.append(float(r))
             steps += 1
+        if not log_probs:
+            return 0.0, 0
         returns: list[float] = []
         G = 0.0
         for r in reversed(rewards):
             G = r + self.cfg.gamma * G
             returns.insert(0, G)
         returns_t = torch.tensor(returns, dtype=torch.float32)
-        returns_t = (returns_t - returns_t.mean()) / (returns_t.std() + 1e-8)
+        if len(returns_t) < 2:
+            returns_t = returns_t * 0.0
+        else:
+            rs_std = returns_t.std()
+            if rs_std < 1e-5:
+                returns_t = returns_t - returns_t.mean()
+            else:
+                returns_t = (returns_t - returns_t.mean()) / (rs_std + 1e-8)
         pol_loss = torch.stack([-lp * Gt for lp, Gt in zip(log_probs, returns_t)]).sum()
         ent_loss = torch.stack(entropies).sum()
         loss = pol_loss - self.cfg.entropy_coef * ent_loss
+        if not torch.isfinite(loss):
+            return float(sum(rewards)), steps
         self.opt.zero_grad()
         loss.backward()
         nn.utils.clip_grad_norm_(self.policy.parameters(), self.cfg.max_grad_norm)
@@ -94,5 +109,5 @@ class ReinforceTrainer:
     def predict(self, obs: np.ndarray) -> int:
         with torch.no_grad():
             x = torch.as_tensor(obs, dtype=torch.float32).unsqueeze(0)
-            logits = self.policy(x)
+            logits = torch.clamp(self.policy(x), -40.0, 40.0)
             return int(torch.argmax(logits, dim=-1).item())

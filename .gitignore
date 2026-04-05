@@ -12,3 +12,4 @@ results/best_models.json
 models/dqn/*.zip
 models/pg/**/*.zip
 models/pg/**/*.pt
+report.md
