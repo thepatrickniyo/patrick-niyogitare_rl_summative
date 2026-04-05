@@ -73,6 +73,19 @@ export PYTHONPATH=.
 
 Headless GIF capture: `export SDL_VIDEODRIVER=dummy` if Pygame cannot open a window.
 
+### Troubleshooting: `ModuleNotFoundError: No module named 'numpy._core'`
+
+That happens when **loading a saved model** (`.zip`) if your **NumPy is too old** (e.g. 1.24.x) while the checkpoint was saved with **NumPy 2.x** (`numpy._core` exists only in NumPy 2).
+
+**Fix:** upgrade NumPy in the **same environment** you use to run `main.py` (project venv recommended, not a mixed global/pyenv site-packages):
+
+```bash
+pip install --upgrade "numpy>=2.0,<3"
+pip install -r requirements.txt
+```
+
+Use one consistent Python: `python -m pip install -r requirements.txt` and run with `python main.py ...`. If you trained inside `.venv`, run demos from that venv too.
+
 ## Random policy GIF (no training)
 
 ```bash
@@ -115,6 +128,16 @@ Example longer, slower demo:
 PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_0.zip \
   --render --demo --verbose --episodes 1 --max-steps 500 --step-delay 0.05
 ```
+
+**~3 minute (or any length) screen recording:** use **`--demo-minutes`** so the process keeps running for that **wall-clock** time. When an episode ends (job-ready, dropout, or timeout), the environment **resets automatically** and the agent keeps acting — the Pygame window stays open for the full duration.
+
+```bash
+# Runs for 3 minutes with GUI; defaults to --step-delay 0.04s if you did not set one (watchable speed)
+PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_0.zip \
+  --render --demo --verbose --demo-minutes 3
+```
+
+Override delay: add e.g. `--step-delay 0.03` for faster or `0.08` for slower.
 
 If you use `results/best_models.json`, omit `--model-path` and pass `--algo` to match.
 

@@ -79,6 +79,75 @@ def run_episode(
     }
 
 
+def run_demo_until_time(
+    env: CodetyAILearningEnv,
+    predict,
+    duration_sec: float,
+    max_steps_per_ep: int,
+    verbose: bool,
+    step_delay: float,
+    seed_base: int,
+) -> None:
+    """
+    Keep the agent running for `duration_sec` wall-clock seconds.
+    When an episode ends (success, dropout, or timeout), auto-reset and continue
+    so the GUI stays active for the full demonstration window.
+    """
+    deadline = time.time() + duration_sec
+    ep = 0
+    grand_steps = 0
+    print(
+        f"Timed demo: running until {duration_sec / 60.0:.1f} min elapsed "
+        f"(episodes reset automatically when one finishes)."
+    )
+    while time.time() < deadline:
+        remaining = deadline - time.time()
+        print(
+            f"\n--- Episode {ep + 1}  (~{remaining:.0f}s left on demo clock) ---"
+        )
+        obs, _ = env.reset(seed=seed_base + ep)
+        if env.render_mode is not None:
+            env.render()
+            if step_delay > 0:
+                time.sleep(step_delay)
+        total_reward = 0.0
+        steps = 0
+        done = trunc = False
+        info: dict = {}
+        while (
+            not (done or trunc)
+            and steps < max_steps_per_ep
+            and time.time() < deadline
+        ):
+            action = predict(obs)
+            obs, reward, done, trunc, info = env.step(action)
+            total_reward += float(reward)
+            steps += 1
+            grand_steps += 1
+            if env.render_mode is not None:
+                env.render()
+                if step_delay > 0:
+                    time.sleep(step_delay)
+            if verbose:
+                print(
+                    f"  ep={ep + 1} step={steps:4d}  action={int(action)}  "
+                    f"reward={reward:8.2f}  cum={info.get('episode_return', total_reward):8.2f}  "
+                    f"skill={info['skill']:.1f}  conf={info['confidence']:.1f}  "
+                    f"eng={info['engagement']}  projects={info['projects']}"
+                )
+        print(
+            f"  [episode end] return={total_reward:.2f}  steps={steps}  "
+            f"job_ready={info.get('job_ready', False)}  dropout={info.get('dropout', False)}"
+        )
+        ep += 1
+        if time.time() >= deadline:
+            break
+    print(
+        f"\n=== Demo finished: {ep} episode(s), {grand_steps} total env steps, "
+        f"{duration_sec:.0f}s wall time ==="
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--algo", choices=["dqn", "ppo", "a2c", "reinforce"], default="dqn")
@@ -115,6 +184,16 @@ def main() -> None:
         "--stricter-job-ready",
         action="store_true",
         help="Harder success criteria (higher skill/conf/projects) so 'job-ready' happens later — demo only.",
+    )
+    parser.add_argument(
+        "--demo-minutes",
+        type=float,
+        default=None,
+        metavar="M",
+        help=(
+            "Run continuously for M minutes (wall clock). Episodes auto-reset when they end "
+            "so the GUI keeps going — ideal for screen recordings. Example: --demo-minutes 3"
+        ),
     )
     args = parser.parse_args()
 
@@ -206,27 +285,54 @@ def main() -> None:
         f"skill≥{env._job_ready_skill:.0f}, conf≥{env._job_ready_confidence:.0f}, "
         f"projects≥{env._min_projects_job_ready}"
     )
-    if args.step_delay > 0 and args.render:
-        print(f"GUI step delay: {args.step_delay}s per frame (slower playback for recording).")
+    step_delay = args.step_delay if args.render else 0.0
+    if step_delay > 0 and args.render:
+        print(f"GUI step delay: {step_delay}s per frame (slower playback for recording).")
 
-    for ep in range(args.episodes):
-        print(f"\n--- Episode {ep + 1} / {args.episodes} (seed={args.seed + ep}) ---")
-        env.reset(seed=args.seed + ep)
-        t0 = time.time()
-        stats = run_episode(
+    if args.demo_minutes is not None:
+        if args.demo_minutes <= 0:
+            raise SystemExit("--demo-minutes must be positive")
+        if not args.render:
+            print(
+                "Note: --demo-minutes without --render will still run for the full duration "
+                "but you will not see the Pygame window. Add --render for visual demo.",
+                file=sys.stderr,
+            )
+        duration_sec = args.demo_minutes * 60.0
+        if step_delay <= 0 and args.render:
+            step_delay = 0.04
+            print(
+                f"Defaulting --step-delay to {step_delay}s so the ~{args.demo_minutes:.0f} min "
+                "demo is watchable (override with --step-delay)."
+            )
+        run_demo_until_time(
             env,
             predict,
-            max_steps=env._max_episode_steps,
+            duration_sec=duration_sec,
+            max_steps_per_ep=env._max_episode_steps,
             verbose=args.verbose,
-            step_delay=args.step_delay if args.render else 0.0,
+            step_delay=step_delay,
+            seed_base=args.seed,
         )
-        dt = time.time() - t0
-        print(
-            f"Summary: return={stats['return']:.3f}  steps={stats['steps']}  "
-            f"skill_end={stats['skill']:.1f}  projects={stats['projects']}  "
-            f"job_ready={stats['job_ready']}  dropout={stats['dropout']}  "
-            f"wall_time={dt:.2f}s"
-        )
+    else:
+        for ep in range(args.episodes):
+            print(f"\n--- Episode {ep + 1} / {args.episodes} (seed={args.seed + ep}) ---")
+            env.reset(seed=args.seed + ep)
+            t0 = time.time()
+            stats = run_episode(
+                env,
+                predict,
+                max_steps=env._max_episode_steps,
+                verbose=args.verbose,
+                step_delay=step_delay,
+            )
+            dt = time.time() - t0
+            print(
+                f"Summary: return={stats['return']:.3f}  steps={stats['steps']}  "
+                f"skill_end={stats['skill']:.1f}  projects={stats['projects']}  "
+                f"job_ready={stats['job_ready']}  dropout={stats['dropout']}  "
+                f"wall_time={dt:.2f}s"
+            )
 
     env.close()
 

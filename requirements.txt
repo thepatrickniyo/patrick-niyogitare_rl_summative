@@ -1,6 +1,7 @@
-# Smart Urban Traffic Control — RL summative (Python 3.10+)
+# CodetyAI RL summative (Python 3.10+)
+# NumPy 2.x: required to load SB3 .zip checkpoints pickled with numpy._core (NumPy 2 layout).
 gymnasium>=0.29.1,<1.1
-numpy>=1.24,<3
+numpy>=2.0,<3
 pygame>=2.5,<3
 stable-baselines3>=2.3.0,<3
 torch>=2.1,<3
