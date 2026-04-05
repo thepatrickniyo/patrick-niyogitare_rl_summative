@@ -6,6 +6,9 @@
 
 **GitHub:** [https://github.com/thepatrickniyo/patrick-niyogitare_rl_summative](https://github.com/thepatrickniyo/patrick-niyogitare_rl_summative)
 
+## DEMO Video
+[https://youtu.be/DdA-wsaHpEo](https://youtu.be/DdA-wsaHpEo)
+
 ## Project layout
 
 ```text
