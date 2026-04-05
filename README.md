@@ -103,6 +103,19 @@ The Pygame window is the **live demo**: progress bars, last action, skill curve,
 PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_0.zip --render --demo --verbose --episodes 1
 ```
 
+**Episode feels too short?** Success (`job-ready`) or **dropout** ends the episode early. To make the demo **run longer on screen**:
+
+- **`--max-steps 500`** — allow up to 500 steps before timeout (default cap is 200).
+- **`--step-delay 0.06`** — pause ~60 ms after each frame so the GUI is easier to follow on video.
+- **`--stricter-job-ready`** — raises the bar for success so “job-ready” happens later (policy was trained on default thresholds; this mode is mainly for **visualisation**).
+
+Example longer, slower demo:
+
+```bash
+PYTHONPATH=. python main.py --algo dqn --model-path models/dqn/run_0.zip \
+  --render --demo --verbose --episodes 1 --max-steps 500 --step-delay 0.05
+```
+
 If you use `results/best_models.json`, omit `--model-path` and pass `--algo` to match.
 
 ### Video recording checklist (typical course rubric)

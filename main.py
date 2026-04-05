@@ -42,10 +42,13 @@ def run_episode(
     predict,
     max_steps: int,
     verbose: bool,
+    step_delay: float = 0.0,
 ) -> dict:
     obs, info = env.reset()
     if env.render_mode is not None:
         env.render()
+        if step_delay > 0:
+            time.sleep(step_delay)
     total_reward = 0.0
     steps = 0
     done = trunc = False
@@ -56,6 +59,8 @@ def run_episode(
         steps += 1
         if env.render_mode is not None:
             env.render()
+            if step_delay > 0:
+                time.sleep(step_delay)
         if verbose:
             print(
                 f"  step={steps:4d}  action={int(action)}  "
@@ -94,6 +99,23 @@ def main() -> None:
         default=None,
         help="REINFORCE MLP hidden size (must match training run if not using best_models.json)",
     )
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=None,
+        help="Max steps per episode (default: 200). Use e.g. 500 so the run can last longer before timeout.",
+    )
+    parser.add_argument(
+        "--step-delay",
+        type=float,
+        default=0.0,
+        help="Seconds to pause after each GUI frame when --render (e.g. 0.06 for slower, clearer video).",
+    )
+    parser.add_argument(
+        "--stricter-job-ready",
+        action="store_true",
+        help="Harder success criteria (higher skill/conf/projects) so 'job-ready' happens later — demo only.",
+    )
     args = parser.parse_args()
 
     model_path = args.model_path
@@ -119,7 +141,17 @@ def main() -> None:
                 algo = entry.get("algo", algo)
 
     render_mode = "human" if args.render else None
-    env = CodetyAILearningEnv(render_mode=render_mode, demo_overlay=args.demo)
+    jr_s = 82.0 if args.stricter_job_ready else None
+    jr_c = 76.0 if args.stricter_job_ready else None
+    jr_p = 3 if args.stricter_job_ready else None
+    env = CodetyAILearningEnv(
+        render_mode=render_mode,
+        demo_overlay=args.demo,
+        max_episode_steps=args.max_steps,
+        job_ready_skill=jr_s,
+        job_ready_confidence=jr_c,
+        min_projects_job_ready=jr_p,
+    )
 
     if algo == "random":
 
@@ -169,6 +201,13 @@ def main() -> None:
         "Reward events: +10 project done, +15 strong skill gain (≥3/step), +20 job-ready, "
         "−10 engagement drop, −20 dropout (see environment/custom_env.py)."
     )
+    print(
+        f"Episode cap: {env._max_episode_steps} steps  |  Success if: "
+        f"skill≥{env._job_ready_skill:.0f}, conf≥{env._job_ready_confidence:.0f}, "
+        f"projects≥{env._min_projects_job_ready}"
+    )
+    if args.step_delay > 0 and args.render:
+        print(f"GUI step delay: {args.step_delay}s per frame (slower playback for recording).")
 
     for ep in range(args.episodes):
         print(f"\n--- Episode {ep + 1} / {args.episodes} (seed={args.seed + ep}) ---")
@@ -177,8 +216,9 @@ def main() -> None:
         stats = run_episode(
             env,
             predict,
-            max_steps=env.MAX_EPISODE_STEPS,
+            max_steps=env._max_episode_steps,
             verbose=args.verbose,
+            step_delay=args.step_delay if args.render else 0.0,
         )
         dt = time.time() - t0
         print(

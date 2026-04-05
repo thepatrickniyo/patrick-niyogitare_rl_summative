@@ -55,11 +55,32 @@ class CodetyAILearningEnv(gym.Env):
         render_mode: Optional[str] = None,
         seed: Optional[int] = None,
         demo_overlay: bool = False,
+        max_episode_steps: Optional[int] = None,
+        job_ready_skill: Optional[float] = None,
+        job_ready_confidence: Optional[float] = None,
+        min_projects_job_ready: Optional[int] = None,
     ):
         super().__init__()
         self.render_mode = render_mode
         self.demo_overlay = demo_overlay
         self._renderer: Optional[Any] = None
+
+        self._max_episode_steps = int(
+            max_episode_steps if max_episode_steps is not None else self.MAX_EPISODE_STEPS
+        )
+        self._job_ready_skill = float(
+            job_ready_skill if job_ready_skill is not None else self.JOB_READY_SKILL
+        )
+        self._job_ready_confidence = float(
+            job_ready_confidence
+            if job_ready_confidence is not None
+            else self.JOB_READY_CONFIDENCE
+        )
+        self._min_projects_job_ready = int(
+            min_projects_job_ready
+            if min_projects_job_ready is not None
+            else self.MIN_PROJECTS_JOB_READY
+        )
 
         self.action_space = spaces.Discrete(len(CodetyAction))
         self.observation_space = spaces.Box(
@@ -111,16 +132,16 @@ class CodetyAILearningEnv(gym.Env):
                 min(self._projects / self.MAX_PROJECTS_OBS, 1.0),
                 min(self._mentorship_sessions / self.MAX_MENTOR_OBS, 1.0),
                 self._confidence / 100.0,
-                min(self._step_count / float(self.MAX_EPISODE_STEPS), 1.0),
+                min(self._step_count / float(self._max_episode_steps), 1.0),
             ],
             dtype=np.float32,
         )
 
     def _is_job_ready(self) -> bool:
         return (
-            self._skill >= self.JOB_READY_SKILL
-            and self._confidence >= self.JOB_READY_CONFIDENCE
-            and self._projects >= self.MIN_PROJECTS_JOB_READY
+            self._skill >= self._job_ready_skill
+            and self._confidence >= self._job_ready_confidence
+            and self._projects >= self._min_projects_job_ready
         )
 
     def step(
@@ -193,7 +214,7 @@ class CodetyAILearningEnv(gym.Env):
             self._low_engagement_streak = 0
 
         terminated = False
-        truncated = self._step_count >= self.MAX_EPISODE_STEPS
+        truncated = self._step_count >= self._max_episode_steps
 
         if self._is_job_ready():
             reward += self.R_JOB_READY
